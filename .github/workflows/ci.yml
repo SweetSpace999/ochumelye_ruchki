@@ -1,0 +1,85 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop, dev, uat, qa ]
+  pull_request:
+    branches: [ main, master, develop, dev, uat, qa ]
+
+jobs:
+  # Блок a ТЗ: Запуск тестов, статический анализ и линтинг
+  test-and-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: dom, curl, libxml, mbstring, zip, pdo, sqlite, pdo_sqlite
+        coverage: pcov # Драйвер для быстрого сбора покрытия тестов
+
+    - name: Copy .env.ci
+      run: cp .env.ci .env
+
+    - name: Install Dependencies
+      run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+    - name: Generate Application Key
+      run: php artisan key:generate
+
+    # Блок b ТЗ: Статический анализ (Larastan)
+    - name: Run PHPStan (Static Analysis)
+      run: vendor/bin/phpstan analyse --error-format=github
+
+    # Блок c ТЗ: Линтинг (Laravel Pint)
+    - name: Run Laravel Pint (Code Style)
+      run: vendor/bin/pint --test
+
+    # Блок a ТЗ: Тесты и лимит покрытия > 50%
+    - name: Run Tests with Coverage Gate
+      run: php artisan test --coverage --min=50
+
+  # Симуляция деплоя (Только при успешных проверках)
+  deploy-simulation:
+    needs: test-and-lint
+    runs-on: ubuntu-latest
+    if: success()
+    
+    # Настройка ручного подтверждения для ветки main/master через Environments
+    environment:
+      name: ${{ (github.ref_name == 'main' || github.ref_name == 'master') && 'production' || 'development' }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # Блок d ТЗ: Симуляция деплоя под разные среды
+    - name: Simulate Deploy
+      run: |
+        if [ "${{ github.ref_name }}" = "master" ] || [ "${{ github.ref_name }}" = "main" ]; then
+          cp .env.prod .env
+          echo "Deploying to [PROD] with .env.prod"
+        elif [ "${{ github.ref_name }}" = "uat" ] || [ "${{ github.ref_name }}" = "qa" ]; then
+          cp .env.uat .env
+          echo "Deploying to [UAT] with .env.uat"
+        else
+          cp .env.dev .env
+          echo "Deploying to [DEV] with .env.dev"
+        fi
+
+    # Отчет мейнтейнерам прямо в коммит на GitHub
+    - name: Create Commit Comment on GitHub
+      if: always()
+      uses: peter-evans/commit-comment@v3
+      with:
+        body: |
+          ### Отчет автоматической сборки CI/CD (Для Мейнтейнеров)
+          
+          * **Статус сборки:** ${{ job.status == 'success' && '🟢 Успешно' || '🔴 Ошибка' }}
+          * **Проверенная ветка:** `${{ github.ref_name }}`
+          * **Автор коммита:** @${{ github.actor }}
+          * **Подробный отчет:** [Перейти к сборке](${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }})
