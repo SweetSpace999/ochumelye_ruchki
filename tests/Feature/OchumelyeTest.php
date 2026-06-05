@@ -120,7 +120,8 @@ class OchumelyeTest extends TestCase
             'price' => 2000,
         ]);
 
-        $response = $this->actingAs($visitor)->get("/booking/confirm/{$mc->id}");
+        // ИСПРАВЛЕНО: путь /book/confirm/ вместо /booking/confirm/
+        $response = $this->actingAs($visitor)->get("/book/confirm/{$mc->id}");
         $response->assertStatus(200)->assertSee('Стейки');
     }
 
@@ -142,7 +143,8 @@ class OchumelyeTest extends TestCase
             'price' => 2000,
         ]);
 
-        $response = $this->actingAs($visitor)->post("/booking/store/{$mc->id}");
+        // ИСПРАВЛЕНО: путь /book/store/ вместо /booking/store/
+        $response = $this->actingAs($visitor)->post("/book/store/{$mc->id}");
 
         $response->assertRedirect("/category/{$category->id}");
         $this->assertDatabaseHas('bookings', [
