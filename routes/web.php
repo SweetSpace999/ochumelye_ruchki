@@ -1,8 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MainController;
-
+use Illuminate\Support\Facades\Route;
 
 //  ОСНОВНЫЕ МАРШРУТЫ ПРИЛОЖЕНИЯ
 Route::get('/', [MainController::class, 'index'])->name('home');

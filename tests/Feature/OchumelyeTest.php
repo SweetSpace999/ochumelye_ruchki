@@ -1,12 +1,12 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use App\Models\Category;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class OchumelyeTest extends TestCase
 {
@@ -25,10 +25,10 @@ class OchumelyeTest extends TestCase
         $category = Category::create([
             'name' => 'Тест Категория',
             'description' => 'Описание',
-            'image' => 'elifant.png'
+            'image' => 'elifant.png',
         ]);
 
-        $response = $this->get('/category/' . $category->id);
+        $response = $this->get('/category/'.$category->id);
         $response->assertStatus(200);
     }
 

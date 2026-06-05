@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
@@ -29,14 +31,14 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         // Логика перенаправления по ролям
-        /** @var \App\Models\User $user */
-        $user = \Illuminate\Support\Facades\Auth::user();
-        
+        /** @var User $user */
+        $user = Auth::user();
+
         if ($user->role === 'lead') {
-            return \Illuminate\Support\Facades\Redirect::route('cabinet');
+            return Redirect::route('cabinet');
         }
-        
-        return \Illuminate\Support\Facades\Redirect::to('/');
+
+        return Redirect::to('/');
     }
 
     /**
@@ -50,6 +52,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return \Illuminate\Support\Facades\Redirect::to('/');
+        return Redirect::to('/');
     }
 }

@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -28,7 +28,7 @@ class RegisteredUserController extends Controller
      *
      * @throws ValidationException
      */
-   public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         // 1. ПРАВИЛА И СООБЩЕНИЯ ВАЛИДАЦИИ (НА РУССКОМ)
         $request->validate([
@@ -45,7 +45,7 @@ class RegisteredUserController extends Controller
             'phone.required' => 'Укажите номер телефона.',
             'password.required' => 'Введите пароль.',
             'password.confirmed' => 'Введенные пароли не совпадают.',
-            'password.min' => 'Пароль должен быть не короче 8 символов.'
+            'password.min' => 'Пароль должен быть не короче 8 символов.',
         ]);
 
         // 2. СОЗДАНИЕ ПОЛЬЗОВАТЕЛЯ В БАЗЕ
@@ -55,13 +55,13 @@ class RegisteredUserController extends Controller
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
             // По умолчанию задаем роль 'visitor'
-            'role' => 'visitor', 
+            'role' => 'visitor',
         ]);
 
         // 3. АВТОРИЗАЦИЯ И РЕДИРЕКТ
         Auth::login($user);
 
         // Вместо redirect() используем полный путь к классу Redirect
-        return \Illuminate\Support\Facades\Redirect::route('home')->with('success', 'Регистрация прошла успешно!');
+        return Redirect::route('home')->with('success', 'Регистрация прошла успешно!');
     }
 }
